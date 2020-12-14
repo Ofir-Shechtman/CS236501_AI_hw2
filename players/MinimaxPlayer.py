@@ -21,25 +21,27 @@ class State:
     @classmethod
     def from_board(cls, board, player_turn):
         size = board.shape
-        blocks = np.argwhere(board == -1)
-        my_pos = np.where(board == 1)
-        rival_pos = np.where(board == 2)
+        blocks = list(map(tuple, np.argwhere(board == -1)))
+        my_pos = tuple(np.argwhere(board == 1)[0])
+        rival_pos = tuple(np.argwhere(board == 2)[0])
         fruits_on_board_dict = dict()
-        for fruit_pos in np.argwhere(board > 2):
+        for fruit_pos in map(tuple, np.argwhere(board > 2)):
             fruits_on_board_dict[fruit_pos] = board[fruit_pos]
         players_score = (0, 0)
         return cls(size, blocks, my_pos, rival_pos, fruits_on_board_dict, players_score, player_turn, None)
 
     def succ_state(self, new_d):
         new_pos = tup_add(self.my_pos, new_d)
+        new_blocks = self.blocks.copy()
         new_fruits_dict = self.fruits_on_board_dict.copy()
         value = 0
         if new_fruits_dict.get(new_pos):
             value = new_fruits_dict.pop(new_pos)
         if self.turn == 1:
             players_score = tup_add(self.players_score, (value, 0))
+            new_blocks.append(self.my_pos)
             return State(self.size,
-                         self.blocks.copy().append(self.my_pos),
+                         new_blocks,
                          new_pos,
                          self.rival_pos,
                          new_fruits_dict,
@@ -47,8 +49,9 @@ class State:
                          2, new_d)
         elif self.turn == 2:
             players_score = tup_add(self.players_score, (0, value))
+            new_blocks.append(self.rival_pos)
             return State(self.size,
-                         self.blocks.copy().append(self.rival_pos),
+                         new_blocks,
                          self.my_pos,
                          new_pos,
                          new_fruits_dict,
@@ -80,7 +83,8 @@ class Player(AbstractPlayer):
         output:
             - direction: tuple, specifing the Player's movement, chosen from self.directions
         """
-        _, direction = self.minmax.search(self.state, None, True)
+        val, direction = self.minmax.search(self.state, float('inf'), True)
+        print(val, direction)
         self.state.blocks.append(self.state.my_pos)
         self.state.my_pos = tup_add(self.state.my_pos, direction)
         return direction
@@ -125,13 +129,16 @@ class Player(AbstractPlayer):
 
     @staticmethod
     def get_legal_moves(state):
+        #TODO:check moving player
         legal_moves = list()
         for d in get_directions():
             new_pos = tup_add(state.my_pos, d)
 
+
             # check legal move
-            if 0 <= new_pos[0] < len(state.size[0]) and 0 <= new_pos[1] < len(state.size[1]) \
-                    and (new_pos not in state.blocks + [state.my_pos, state.rival_pos]):
+            if 0 <= new_pos[0] < state.size[0] and 0 <= new_pos[1] < state.size[1] \
+                    and new_pos not in state.blocks and not new_pos == state.my_pos\
+                    and not new_pos == state.rival_pos:
                 legal_moves.append(d)
         return legal_moves
 
@@ -141,4 +148,4 @@ class Player(AbstractPlayer):
 
     @classmethod
     def goal(cls, state):
-        return True if cls.get_legal_moves(state) else False
+        return True if cls.get_legal_moves(state) == [] else False

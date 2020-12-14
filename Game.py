@@ -101,7 +101,7 @@ class Game:
         animation = FuncAnimation(self.fig, self.animation_func,
                                                  init_func=self.init_func,
                                                  frames=int(self.T + 1) * 10,
-                                                 interval=10000,  # change game speed anumation here
+                                                 interval=600,  # change game speed anumation here
                                                  blit=False)
 
     @staticmethod

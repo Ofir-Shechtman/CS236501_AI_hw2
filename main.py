@@ -12,11 +12,11 @@ if __name__ == "__main__":
     parser.add_argument('-player1', default='LivePlayer', type=str, 
                         help='The type of the first player.',
                         choices=players_options)
-    parser.add_argument('-player2', default='SimplePlayer',  type=str,
+    parser.add_argument('-player2', default='MinimaxPlayer',  type=str,
                         help='The type of the second player.',
                         choices=players_options)
     
-    parser.add_argument('-board', default='simple_board.csv', type=str,
+    parser.add_argument('-board', default='default_board.csv', type=str,
                         help='Name of board file (.csv).')
 
     parser.add_argument('-move_time', default=200, type=float, 
@@ -30,7 +30,7 @@ if __name__ == "__main__":
     parser.add_argument('-max_fruit_time', default=15, type=float, 
                         help='Max time for fruit on the board (turns).')
 
-    parser.add_argument('-terminal_viz', action='store_true',
+    parser.add_argument('-terminal_viz', action='store_false',
                         help='Show game in terminal only.')
     parser.add_argument('-dont_print_game', action='store_true', 
                         help='Together with "terminal_viz", show in terminal only the winner.')

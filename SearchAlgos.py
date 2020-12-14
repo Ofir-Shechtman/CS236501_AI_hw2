@@ -37,36 +37,27 @@ class MiniMax(SearchAlgos):
         if self.goal(state):
             return self.utility(state), None
         else:
-
-
-
-
-
-
-
-
-
-            succ_res = map(self.succ(state), lambda child: self.search(child, depth - 1, not maximizing_player))
-            key= lambda res: res[0]
             if maximizing_player:
-                return max(succ_res, key=key)
+                max_val = float('inf') * -1
+                max_direction = None
+                for child in self.succ(state):
+                    temp = self.search(child, depth-1, not maximizing_player)
+                    val = self.search(child, depth-1, not maximizing_player)[0]
+                    if val > max_val:
+                        max_val = val
+                        max_direction = child.last_move
+                        if max_val == 1:
+                            break
+                return max_val, max_direction
             else:
-                return min(succ_res, key=key)
-
-
-
-            next_pos = -1
-            for child in self.succ(state):
-                if maximizing_player == 1:
-                    if self.search(child, depth - 1, not maximizing_player)[0] == 1:
-                        next_state = child
-            return next_state.d
-
-        next = self.utility(state)
-        for child in self.succ(state):
-            value, direction = self.search((child, depth - 1, not maximizing_player))
-
-        return
+                min_val = float('inf')
+                for child in self.succ(state):
+                    val = self.search(child, depth-1, not maximizing_player)[0]
+                    if val < min_val:
+                        min_val = val
+                        if min_val == -1:
+                            break
+                return min_val, None
 
 
 class AlphaBeta(SearchAlgos):
