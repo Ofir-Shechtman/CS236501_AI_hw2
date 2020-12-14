@@ -42,6 +42,8 @@ class Player(AbstractPlayer):
         while not direction_legal:
             sys.stdout = open(os.devnull, 'w')
             pressed_key = input()
+            if pressed_key not in self.keys_directions.keys():
+                continue
             direction = self.keys_directions[pressed_key]
             direction_legal = self.is_direction_legal(direction)
             sys.stdout = sys.__stdout__

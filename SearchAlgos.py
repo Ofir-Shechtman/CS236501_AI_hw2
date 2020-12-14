@@ -34,14 +34,15 @@ class MiniMax(SearchAlgos):
         :param maximizing_player: Whether this is a max node (True) or a min node (False).
         :return: A tuple: (The min max algorithm value, The direction in case of max node or None in min mode)
         """
-        if self.goal(state):
+        turn = 1 if maximizing_player else 2
+        if self.goal(state, turn):
             return self.utility(state), None
         else:
             if maximizing_player:
                 max_val = float('inf') * -1
                 max_direction = None
-                for child in self.succ(state):
-                    temp = self.search(child, depth-1, not maximizing_player)
+                children = self.succ(state, 1)
+                for child in children:
                     val = self.search(child, depth-1, not maximizing_player)[0]
                     if val > max_val:
                         max_val = val
@@ -51,7 +52,7 @@ class MiniMax(SearchAlgos):
                 return max_val, max_direction
             else:
                 min_val = float('inf')
-                for child in self.succ(state):
+                for child in self.succ(state, 2):
                     val = self.search(child, depth-1, not maximizing_player)[0]
                     if val < min_val:
                         min_val = val
