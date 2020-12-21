@@ -1,6 +1,10 @@
 """
 MiniMax Player
 """
+import threading
+import _thread as thread
+import time
+
 from players.AbstractPlayer import AbstractPlayer
 import numpy as np
 from SearchAlgos import MiniMax
@@ -8,7 +12,7 @@ from utils import tup_add, get_directions
 
 
 class State:
-    def __init__(self, size, blocks, positions, fruits_on_board_dict, players_score, last_move, total_steps):
+    def __init__(self, size, blocks, positions, fruits_on_board_dict, players_score, last_move, total_steps, penalty_score):
         self.size = size
         self.blocks = blocks
         self.players_pos = positions
@@ -16,9 +20,10 @@ class State:
         self.players_score = players_score
         self.last_move = last_move
         self.total_steps = total_steps
+        self.penalty_score = penalty_score
 
     @classmethod
-    def from_board(cls, board):
+    def from_board(cls, board, penalty_score):
         size = board.shape
         blocks = list(map(tuple, np.argwhere(board == -1)))
         my_pos = tuple(np.argwhere(board == 1)[0])
@@ -28,7 +33,7 @@ class State:
         for fruit_pos in map(tuple, np.argwhere(board > 2)):
             fruits_on_board_dict[fruit_pos] = board[fruit_pos]
         players_score = (0, 0)
-        return cls(size, blocks, positions, fruits_on_board_dict, players_score, None, 0)
+        return cls(size, blocks, positions, fruits_on_board_dict, players_score, None, 0, penalty_score)
 
     def succ_state(self, turn, new_d):
         if turn == 1:
@@ -52,12 +57,21 @@ class State:
         else:
             new_players_score = self.players_score[0], self.players_score[1]+value
         new_blocks.append(self.players_pos[turn-1])
-        return State(self.size,
+        new_state = State(self.size,
                     new_blocks,
                     new_players_pos,
                     new_fruits_dict,
                     new_players_score,
-                    new_d, self.total_steps+1)
+                    new_d,
+                    self.total_steps+1,
+                    self.penalty_score)
+        '''turn = 3-turn
+        if not new_state.can_move(turn):
+            if turn==1:
+                new_state.players_score = new_state.players_score[0]-new_state.penalty_score, new_state.players_score[1]
+            elif turn==2:
+                new_state.players_score = new_state.players_score[0], new_state.players_score[1]-new_state.penalty_score'''
+        return new_state
 
     def get_legal_moves(self, turn):
         legal_moves = list()
@@ -72,6 +86,29 @@ class State:
 
     def can_move(self, turn):
         return True if self.get_legal_moves(turn) else False
+
+
+def timeout(s):
+    '''
+    use as decorator to exit process if
+    function takes longer than s seconds
+    '''
+    def outer(foo):
+        def inner(*args, **kwargs):
+            timer = threading.Timer(s, thread.interrupt_main)
+            timer.start()
+            result=None
+            try:
+                result = foo(*args, **kwargs)
+            except KeyboardInterrupt:
+                print('got Timeout')
+                result=None
+            finally:
+                timer.cancel()
+            return result
+        return inner
+    return outer
+
 
 class Player(AbstractPlayer):
     def __init__(self, game_time, penalty_score):
@@ -89,7 +126,7 @@ class Player(AbstractPlayer):
             - board: np.array, a 2D matrix of the board.
         No output is expected.
         """
-        self.state = State.from_board(board)
+        self.state = State.from_board(board, self.penalty_score)
 
     def make_move(self, time_limit, players_score):
         """Make move with this Player.
@@ -98,8 +135,39 @@ class Player(AbstractPlayer):
         output:
             - direction: tuple, specifing the Player's movement, chosen from self.directions
         """
-        #val, direction = self.minmax.search(self.state, float('inf'), True)
-        val, direction = self.minmax.search(self.state, 10, True)
+        #if tuple(players_score) != self.state.players_score:
+        #    print(tuple(players_score), self.state.players_score)
+        assert tuple(players_score) == self.state.players_score
+
+        iter_time = 0
+        eps = 0.5
+        depth = 1
+        val, direction = None,None
+        global_start = time.time()
+        while True:
+            iter_start = time.time()
+            if not iter_time or iter_time * (1+eps) < time_limit - (iter_start - global_start):
+                self.minmax.set_end_reason(True)
+                val, direction = self.minmax.search(self.state, depth, True)
+                if self.minmax.end_reason:
+                    print('end_reason')
+                    break
+                iter_time = time.time() - iter_start
+                depth += 1
+            else:
+                break
+        print(depth, iter_start-global_start, iter_time)
+
+        '''while True:
+            run_time = time.time() - start
+            print(depth, run_time)
+            return_value = timeout(time_limit-run_time-eps)(self.minmax.search)(self.state, depth, True)
+            if return_value:
+                val, direction = return_value
+                depth += 1
+            else:
+                break
+        '''
         print(val, self.state.players_score)
         self.state = self.state.succ_state(1, direction)
         return direction
@@ -131,18 +199,12 @@ class Player(AbstractPlayer):
     ########## helper functions for MiniMax algorithm ##########
     # TODO: add here the utility, succ, and perform_move functions used in MiniMax algorithm
 
-    def utility(self, state):
+    def utility(self, state, turn):
         diff = state.players_score[0] - state.players_score[1]
-        if not state.can_move(1):
+        player1, player2 = state.can_move(1), state.can_move(2)
+        if not state.can_move(3-turn):# and not state.can_move(3-turn):
             diff -= self.penalty_score
-        if not state.can_move(2):
-            diff += self.penalty_score
-        if diff > 0:
-            return 1
-        elif diff < 0:
-            return -1
-        else:
-            return 0
+        return diff
 
     @staticmethod
     def succ(state, turn):

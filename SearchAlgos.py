@@ -27,6 +27,17 @@ class SearchAlgos:
 
 class MiniMax(SearchAlgos):
 
+    def __init__(self, utility, succ, perform_move, goal=None):
+        super().__init__(utility, succ, perform_move, goal)
+        self.set_end_reason(True)
+
+    def set_end_reason(self, flag: bool):
+        self._reach_end = flag
+
+    @property
+    def end_reason(self):
+        return self._reach_end
+
     def search(self, state, depth, maximizing_player):
         """Start the MiniMax algorithm.
         :param state: The state to start from.
@@ -36,14 +47,16 @@ class MiniMax(SearchAlgos):
         """
         turn = 1 if maximizing_player else 2
         if self.goal(state, turn):
-            return self.utility(state), None
+            return self.utility(state, turn), None
+        elif depth == 0:
+            self.set_end_reason(False)
+            return self.utility(state, turn), None
         else:
             if maximizing_player:
                 max_val = float('inf') * -1
                 max_direction = None
-                children = self.succ(state, 1)
-                for child in children:
-                    val = self.search(child, depth-1, not maximizing_player)[0]
+                for child in self.succ(state, 1):
+                    val = self.search(child, depth - 1, not maximizing_player)[0]
                     if val > max_val:
                         max_val = val
                         max_direction = child.last_move
@@ -53,7 +66,7 @@ class MiniMax(SearchAlgos):
             else:
                 min_val = float('inf')
                 for child in self.succ(state, 2):
-                    val = self.search(child, depth-1, not maximizing_player)[0]
+                    val = self.search(child, depth - 1, not maximizing_player)[0]
                     if val < min_val:
                         min_val = val
                         if min_val == -1:
