@@ -20,16 +20,7 @@ class SearchAlgos:
         self.succ = succ
         self.perform_move = perform_move
         self.goal = goal
-
-    def search(self, state, depth, maximizing_player):
-        pass
-
-
-class MiniMax(SearchAlgos):
-
-    def __init__(self, utility, succ, perform_move, goal=None):
-        super().__init__(utility, succ, perform_move, goal)
-        self.set_end_reason(True)
+        self._reach_end = True
 
     def set_end_reason(self, flag: bool):
         self._reach_end = flag
@@ -37,6 +28,12 @@ class MiniMax(SearchAlgos):
     @property
     def end_reason(self):
         return self._reach_end
+
+    def search(self, state, depth, maximizing_player):
+        raise NotImplementedError
+
+
+class MiniMax(SearchAlgos):
 
     def search(self, state, depth, maximizing_player):
         """Start the MiniMax algorithm.
@@ -47,30 +44,26 @@ class MiniMax(SearchAlgos):
         """
         turn = 1 if maximizing_player else 2
         if self.goal(state, turn):
-            return self.utility(state, turn), None
+            return self.utility(state), None
         elif depth == 0:
             self.set_end_reason(False)
-            return self.utility(state, turn), None
+            return self.utility(state), None
         else:
             if maximizing_player:
                 max_val = float('inf') * -1
                 max_direction = None
                 for child in self.succ(state, 1):
-                    val = self.search(child, depth - 1, not maximizing_player)[0]
+                    val,_ = self.search(child, depth - 1, not maximizing_player)
                     if val > max_val:
                         max_val = val
                         max_direction = child.last_move
-                        if max_val == 1:
-                            break
                 return max_val, max_direction
             else:
                 min_val = float('inf')
                 for child in self.succ(state, 2):
-                    val = self.search(child, depth - 1, not maximizing_player)[0]
+                    val,_ = self.search(child, depth - 1, not maximizing_player)
                     if val < min_val:
                         min_val = val
-                        if min_val == -1:
-                            break
                 return min_val, None
 
 
@@ -85,5 +78,35 @@ class AlphaBeta(SearchAlgos):
         :param: beta: beta value
         :return: A tuple: (The min max algorithm value, The direction in case of max node or None in min mode)
         """
-        # TODO: erase the following line and implement this function.
-        raise NotImplementedError
+
+        turn = 1 if maximizing_player else 2
+        if self.goal(state, turn):
+            return self.utility(state), None
+        elif depth == 0:
+            self.set_end_reason(False)
+            return self.utility(state), None
+        else:
+            if maximizing_player:
+                max_val = float('inf') * -1
+                max_direction = None
+                for child in self.succ(state, 1):
+                    val, _ = self.search(child, depth - 1, not maximizing_player, alpha, beta)
+                    if val > max_val:
+                        max_val = val
+                        max_direction = child.last_move
+                    if max_val > alpha:
+                        alpha = max_val
+                    if max_val >= beta:
+                        return float('inf'), child.last_move
+                return max_val, max_direction
+            else:
+                min_val = float('inf')
+                for child in self.succ(state, 2):
+                    val, _ = self.search(child, depth - 1, not maximizing_player, alpha, beta)
+                    if val < min_val:
+                        min_val = val
+                    if min_val < beta:
+                        beta = min_val
+                    if min_val <= alpha:
+                        return float('inf') * -1, None
+                return min_val, None
