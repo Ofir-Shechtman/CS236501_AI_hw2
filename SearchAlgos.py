@@ -44,10 +44,10 @@ class MiniMax(SearchAlgos):
         """
         turn = 1 if maximizing_player else 2
         if self.goal(state, turn):
-            return self.utility(state), None
+            return self.utility(state, turn), None
         elif depth == 0:
             self.set_end_reason(False)
-            return self.utility(state), None
+            return self.utility(state, turn), None
         else:
             if maximizing_player:
                 max_val = float('inf') * -1
@@ -81,10 +81,10 @@ class AlphaBeta(SearchAlgos):
 
         turn = 1 if maximizing_player else 2
         if self.goal(state, turn):
-            return self.utility(state), None
+            return self.utility(state, turn), None
         elif depth == 0:
             self.set_end_reason(False)
-            return self.utility(state), None
+            return self.utility(state, turn), None
         else:
             if maximizing_player:
                 max_val = float('inf') * -1

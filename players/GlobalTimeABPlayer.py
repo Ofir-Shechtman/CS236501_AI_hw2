@@ -1,27 +1,20 @@
 """
 MiniMax Player with AlphaBeta pruning and global time
 """
+import time
+
 from players.AbstractPlayer import AbstractPlayer
-#TODO: you can import more modules, if needed
+from players import AlphabetaPlayer
 
 
-class Player(AbstractPlayer):
+# TODO: you can import more modules, if needed
+
+
+class Player(AlphabetaPlayer.Player):
+
     def __init__(self, game_time, penalty_score):
-        AbstractPlayer.__init__(self, game_time, penalty_score) # keep the inheritance of the parent's (AbstractPlayer) __init__()
-        #TODO: initialize more fields, if needed, and the AlphaBeta algorithm from SearchAlgos.py
-
-
-    def set_game_params(self, board):
-        """Set the game parameters needed for this player.
-        This function is called before the game starts.
-        (See GameWrapper.py for more info where it is called)
-        input:
-            - board: np.array, a 2D matrix of the board.
-        No output is expected.
-        """
-        #TODO: erase the following line and implement this function.
-        raise NotImplementedError
-    
+        super().__init__(game_time, penalty_score)
+        self.game_time_limit = game_time
 
     def make_move(self, time_limit, players_score):
         """Make move with this Player.
@@ -30,36 +23,19 @@ class Player(AbstractPlayer):
         output:
             - direction: tuple, specifing the Player's movement, chosen from self.directions
         """
-        #TODO: erase the following line and implement this function.
-        raise NotImplementedError
+        eps = 1e-2
+        max_depth = 15
+        if self.game_time_limit > 0.84:
+            my_time = (self.game_time_limit * (1 - eps)) / 2
+        elif self.game_time_limit > 0.04:
+            my_time = 4e-2
+        else:
+            my_time = 2e-3
 
-
-    def set_rival_move(self, pos):
-        """Update your info, given the new position of the rival.
-        input:
-            - pos: tuple, the new position of the rival.
-        No output is expected
-        """
-        #TODO: erase the following line and implement this function.
-        raise NotImplementedError
-
-
-    def update_fruits(self, fruits_on_board_dict):
-        """Update your info on the current fruits on board (if needed).
-        input:
-            - fruits_on_board_dict: dict of {pos: value}
-                                    where 'pos' is a tuple describing the fruit's position on board,
-                                    'value' is the value of this fruit.
-        No output is expected.
-        """
-        #TODO: erase the following line and implement this function. In case you choose not to use this function, 
-        # use 'pass' instead of the following line.
-        raise NotImplementedError
-
-
-    ########## helper functions in class ##########
-    #TODO: add here helper functions in class, if needed
-
-
-    ########## helper functions for AlphaBeta algorithm ##########
-    #TODO: add here the utility, succ, and perform_move functions used in AlphaBeta algorithm
+        cur_turn_time = min(my_time, time_limit)
+        start = time.time()
+        ret_val = self.make_move_aux(cur_turn_time, players_score, max_depth, 0.6)
+        end = time.time()
+        print(f'Global timer: {self.game_time_limit}, turn time:{cur_turn_time}, actual time{(end - start)}')
+        self.game_time_limit -= (end - start)
+        return ret_val
