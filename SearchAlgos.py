@@ -1,5 +1,7 @@
 """Search Algos: MiniMax, AlphaBeta
 """
+import time
+
 from utils import ALPHA_VALUE_INIT, BETA_VALUE_INIT
 
 
@@ -21,6 +23,22 @@ class SearchAlgos:
         self.perform_move = perform_move
         self.goal = goal
         self._reach_end = True
+        self.timer = None
+
+    class Timer:
+        def __init__(self, time_limit):
+            self.time_limit = time_limit
+
+        def reset(self):
+            self.start_time = time.time()
+
+        def timeout(self):
+            return time.time() - self.start_time > self.time_limit - 1e-2
+
+    def setup_timer(self, time_limit):
+        self.timer = self.Timer(time_limit)
+        self.timer.reset()
+
 
     def set_end_reason(self, flag: bool):
         self._reach_end = flag
@@ -42,6 +60,9 @@ class MiniMax(SearchAlgos):
         :param maximizing_player: Whether this is a max node (True) or a min node (False).
         :return: A tuple: (The min max algorithm value, The direction in case of max node or None in min mode)
         """
+        if self.timer.timeout():
+            print(f'timeout on: {time.time()-self.timer.start_time}')
+            raise TimeoutError
         turn = 1 if maximizing_player else 2
         if self.goal(state, turn):
             return self.utility(state, turn), None
@@ -53,7 +74,7 @@ class MiniMax(SearchAlgos):
                 max_val = float('inf') * -1
                 max_direction = None
                 for child in self.succ(state, 1):
-                    val,_ = self.search(child, depth - 1, not maximizing_player)
+                    val, _ = self.search(child, depth - 1, not maximizing_player)
                     if val > max_val:
                         max_val = val
                         max_direction = child.last_move
@@ -61,7 +82,7 @@ class MiniMax(SearchAlgos):
             else:
                 min_val = float('inf')
                 for child in self.succ(state, 2):
-                    val,_ = self.search(child, depth - 1, not maximizing_player)
+                    val, _ = self.search(child, depth - 1, not maximizing_player)
                     if val < min_val:
                         min_val = val
                 return min_val, None
@@ -78,7 +99,9 @@ class AlphaBeta(SearchAlgos):
         :param: beta: beta value
         :return: A tuple: (The min max algorithm value, The direction in case of max node or None in min mode)
         """
-
+        if self.timer.timeout():
+            print(f'timeout on: {time.time()-self.timer.start_time}')
+            raise TimeoutError
         turn = 1 if maximizing_player else 2
         if self.goal(state, turn):
             return self.utility(state, turn), None

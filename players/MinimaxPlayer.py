@@ -126,9 +126,9 @@ class AlgoPlayer(AbstractPlayer):
         self.state = State.from_board(board)
 
     def make_move(self, time_limit, players_score):
-        return self.make_move_aux(time_limit, players_score, float('inf'))
+        return self.make_move_aux(time_limit, players_score)
 
-    def make_move_aux(self, time_limit, players_score, max_depth, eps=0.8):
+    def make_move_aux(self, time_limit, players_score, max_depth=float('inf'), set_timer: bool = True, eps=0):
         """Make move with this Player.
         input:
             - time_limit: float, time limit for a single turn.
@@ -140,11 +140,17 @@ class AlgoPlayer(AbstractPlayer):
         val, direction = None, None
         global_start = time.time()
         iter_start = None
-        while max_depth>=depth:
+        if set_timer:
+            self.search_algorithm.setup_timer(time_limit)
+        while max_depth >= depth:
             iter_start = time.time()
             if not iter_time or iter_time * (1 + eps) < time_limit - (iter_start - global_start):
                 self.search_algorithm.set_end_reason(True)
-                val, direction = self.search_algorithm.search(self.state, depth, True)
+                try:
+                    val, direction = self.search_algorithm.search(self.state, depth, True)
+                except TimeoutError:
+                    print('TimeoutError catch')
+                    break
                 if self.search_algorithm.end_reason:
                     print('end_reason')
                     break
@@ -202,7 +208,6 @@ class AlgoPlayer(AbstractPlayer):
         elif moves == 4:
             return 0
 
-
     def utility_component3(self, state: State, turn):
         player_loc = state.players_pos[0] if turn == 1 else state.players_pos[0]
         if not state.fruits_on_board_dict:
@@ -213,7 +218,7 @@ class AlgoPlayer(AbstractPlayer):
         def md_wrapper(fruit):
             fruit_loc, fruit_value = fruit
             dist = md(player_loc, fruit_loc)
-            if dist < (min(state.size) * 2 - state.total_steps)//2:
+            if dist < (min(state.size) * 2 - state.total_steps) // 2:
                 return 0
             return fruit_value / md(player_loc, fruit_loc)
 
@@ -222,19 +227,16 @@ class AlgoPlayer(AbstractPlayer):
         return max(fruit_dist)
 
     def utility_component4(self, state, turn):
-        return state.penalty_flag[1]*self.penalty_score - state.penalty_flag[0]*self.penalty_score
+        return state.penalty_flag[1] * self.penalty_score - state.penalty_flag[0] * self.penalty_score
 
     def utility(self, state: State, turn):
-        simple_w = 10 if state.fruits_on_board_dict else self.penalty_score//2
+        simple_w = 10 if state.fruits_on_board_dict else self.penalty_score//4
         comp1 = self.utility_component1(state, turn)
         simple = self.utility_component2(state, turn)
         comp3 = self.utility_component3(state, turn)
         comp4 = self.utility_component4(state, turn)
         w1, w3, w4 = 1, 1, 1
         return comp1 * w1 + simple * simple_w + comp3 * w3 + comp4 * w4
-
-
-
 
 
 class Player(AlgoPlayer):
