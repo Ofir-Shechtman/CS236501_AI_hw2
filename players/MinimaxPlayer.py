@@ -235,7 +235,7 @@ class AlgoPlayer(AbstractPlayer):
         simple = self.utility_component2(state, turn)
         comp3 = self.utility_component3(state, turn)
         comp4 = self.utility_component4(state, turn)
-        w1, w3, w4 = 1, 1, 1
+        w1, w3, w4 = 1, 2, 1
         return comp1 * w1 + simple * simple_w + comp3 * w3 + comp4 * w4
 
 
