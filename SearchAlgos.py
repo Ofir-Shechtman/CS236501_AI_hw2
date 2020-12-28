@@ -65,17 +65,17 @@ class MiniMax(SearchAlgos):
             raise TimeoutError
         turn = 1 if maximizing_player else 2
         if self.goal(state, turn):
-            return self.utility(state, turn), None
+            return self.utility(state, turn, True), None
         elif depth == 0:
             self.set_end_reason(False)
-            return self.utility(state, turn), None
+            return self.utility(state, turn, False), None
         else:
             if maximizing_player:
                 max_val = float('inf') * -1
                 max_direction = None
                 for child in self.succ(state, 1):
                     val, _ = self.search(child, depth - 1, not maximizing_player)
-                    if val > max_val:
+                    if val > max_val or not max_direction:
                         max_val = val
                         max_direction = child.last_move
                 return max_val, max_direction
@@ -104,17 +104,17 @@ class AlphaBeta(SearchAlgos):
             raise TimeoutError
         turn = 1 if maximizing_player else 2
         if self.goal(state, turn):
-            return self.utility(state, turn), None
+            return self.utility(state, turn, True), None
         elif depth == 0:
             self.set_end_reason(False)
-            return self.utility(state, turn), None
+            return self.utility(state, turn, False), None
         else:
             if maximizing_player:
                 max_val = float('inf') * -1
                 max_direction = None
                 for child in self.succ(state, 1):
                     val, _ = self.search(child, depth - 1, not maximizing_player, alpha, beta)
-                    if val > max_val:
+                    if val > max_val or not max_direction:
                         max_val = val
                         max_direction = child.last_move
                     if max_val > alpha:

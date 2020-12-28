@@ -158,11 +158,16 @@ class Player(AbstractPlayer):
     def utility_component4(self, state, turn):
         return state.penalty_flag[1] * self.penalty_score - state.penalty_flag[0] * self.penalty_score
 
-    def utility(self, state: State, turn):
+    def utility(self, state: State, turn, is_goal):
         simple_w = 10 if state.fruits_on_board_dict else self.penalty_score // 4
         comp1 = self.utility_component1(state, turn)
         simple = self.utility_component2(state, turn)
         comp3 = self.utility_component3(state, turn)
         comp4 = self.utility_component4(state, turn)
+        if is_goal:
+            score = comp1 + comp4
+            if score > 0:
+                return float('inf')
+
         w1, w3, w4 = 1, 2, 1
         return comp1 * w1 + simple * simple_w + comp3 * w3 + comp4 * w4
