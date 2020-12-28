@@ -5,14 +5,14 @@ import utils
 
 if __name__ == "__main__":
     players_options = [x+'Player' for x in ['Live', 'Simple', 'Minimax', 'Alphabeta', 'GlobalTimeAB', 'LightAB',
-                                            'HeavyABPlayer', 'Compete']]
+                                            'HeavyAB', 'Compete']]
 
     parser = argparse.ArgumentParser()
     
-    parser.add_argument('-player1', default='MinimaxPlayer', type=str,
+    parser.add_argument('-player1', default='LightABPlayer', type=str,
                         help='The type of the first player.',
                         choices=players_options)
-    parser.add_argument('-player2', default='AlphabetaPlayer',  type=str,
+    parser.add_argument('-player2', default='CompetePlayer',  type=str,
                         help='The type of the second player.',
                         choices=players_options)
     

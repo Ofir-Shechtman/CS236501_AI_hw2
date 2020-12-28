@@ -60,7 +60,7 @@ class MiniMax(SearchAlgos):
         :param maximizing_player: Whether this is a max node (True) or a min node (False).
         :return: A tuple: (The min max algorithm value, The direction in case of max node or None in min mode)
         """
-        if self.timer.timeout():
+        if self.timer and self.timer.timeout():
             print(f'timeout on: {time.time()-self.timer.start_time}')
             raise TimeoutError
         turn = 1 if maximizing_player else 2
@@ -99,7 +99,7 @@ class AlphaBeta(SearchAlgos):
         :param: beta: beta value
         :return: A tuple: (The min max algorithm value, The direction in case of max node or None in min mode)
         """
-        if self.timer.timeout():
+        if self.timer and self.timer.timeout():
             print(f'timeout on: {time.time()-self.timer.start_time}')
             raise TimeoutError
         turn = 1 if maximizing_player else 2
