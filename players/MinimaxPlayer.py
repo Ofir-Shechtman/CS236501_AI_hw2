@@ -48,17 +48,17 @@ class Player(AbstractPlayer):
                 try:
                     val, direction = self.minimax.search(self.state, depth, True)
                 except TimeoutError:
-                    print('TimeoutError catch')
+                    #print('TimeoutError catch')
                     break
                 if self.minimax.end_reason:
-                    print('end_reason')
+                    #print('end_reason')
                     break
                 iter_time = time.time() - iter_start
                 depth += 1
             else:
                 break
-        print(depth, iter_start - global_start, iter_time)
-        print(val, self.state.players_score)
+        #print(depth, iter_start - global_start, iter_time)
+        #print(val, self.state.players_score)
         self.state = self.state.succ_state(1, direction)
         return direction
 

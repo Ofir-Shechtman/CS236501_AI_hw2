@@ -51,9 +51,9 @@ class Player(AbstractPlayer):
 
         cur_turn_time = min(my_time, time_limit)
         start = time.time()
-        ret_val = self.make_move_aux(cur_turn_time, players_score, max_depth, set_timer=False, eps=0.6)
+        ret_val = self.make_move_aux(cur_turn_time, players_score, max_depth, set_timer=True, eps=0.6)
         end = time.time()
-        print(f'Global timer: {self.game_time_limit}, turn time:{cur_turn_time}, actual time{(end - start)}')
+        #print(f'Global timer: {self.game_time_limit}, turn time:{cur_turn_time}, actual time{(end - start)}')
         self.game_time_limit -= (end - start)
         return ret_val
 
@@ -78,17 +78,17 @@ class Player(AbstractPlayer):
                 try:
                     val, direction = self.alpha_beta.search(self.state, depth, True)
                 except TimeoutError:
-                    print('TimeoutError catch')
+                    #print('TimeoutError catch')
                     break
                 if self.alpha_beta.end_reason:
-                    print('end_reason')
+                    #print('end_reason')
                     break
                 iter_time = time.time() - iter_start
                 depth += 1
             else:
                 break
-        print(depth, iter_start - global_start, iter_time)
-        print(val, self.state.players_score)
+        #print(depth, iter_start - global_start, iter_time)
+        #print(val, self.state.players_score)
         self.state = self.state.succ_state(1, direction)
         return direction
 
